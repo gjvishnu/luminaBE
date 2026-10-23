@@ -1,0 +1,19 @@
+node_modules/
+
+# Secrets
+.env
+.env.*
+!.env.example
+
+# Generated output
+test-results.txt
+
+# Backup files
+server.backup.js
+*.bak
+
+# Local configuration folders
+.agents/
+.claude/
+.cursor/
+.devin/

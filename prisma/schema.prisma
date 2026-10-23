@@ -1,0 +1,214 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  STUDENT
+  PLACEMENT_OFFICER
+  ADMIN
+}
+
+model User {
+  id           Int      @id @default(autoincrement())
+  email        String   @unique
+  passwordHash String
+  role         UserRole @default(STUDENT)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  student Student?
+}
+
+model Department {
+  id        Int       @id @default(autoincrement())
+  name      String    @unique
+  code      String?   @unique
+  students  Student[]
+  createdAt DateTime  @default(now())
+}
+
+model Student {
+  id                 Int       @id @default(autoincrement())
+  userId             Int       @unique
+  departmentId       Int
+  registrationNumber String    @unique
+  fullName           String
+  phone              String?
+  dateOfBirth        DateTime?
+  gender             String?
+  address            String?
+  city               String?
+  state              String?
+  program            String
+  batchYear          Int
+  currentSemester    Int?
+  bio                String?
+  linkedinUrl        String?
+  githubUrl          String?
+  portfolioUrl       String?
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+
+  user        User                  @relation(fields: [userId], references: [id])
+  department  Department            @relation(fields: [departmentId], references: [id])
+  skills      StudentSkill[]
+  projects    Project[]
+  internships Internship[]
+  performance SemesterPerformance[]
+  resumes     Resume[]
+  activities  StudentActivity[]
+  sports      StudentSport[]
+  awards      StudentAward[]
+}
+
+model Category {
+  id     Int     @id @default(autoincrement())
+  name   String  @unique
+  skills Skill[]
+}
+
+model Domain {
+  id     Int     @id @default(autoincrement())
+  name   String  @unique
+  skills Skill[]
+}
+
+model Skill {
+  id         Int    @id @default(autoincrement())
+  name       String @unique
+  categoryId Int?
+  domainId   Int?
+
+  category Category? @relation(fields: [categoryId], references: [id])
+  domain   Domain?   @relation(fields: [domainId], references: [id])
+
+  studentSkills    StudentSkill[]
+  projectSkills    ProjectSkill[]
+  internshipSkills InternshipSkill[]
+}
+
+model StudentSkill {
+  studentId Int
+  skillId   Int
+  level     String?
+  createdAt DateTime @default(now())
+
+  student Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  skill   Skill   @relation(fields: [skillId], references: [id], onDelete: Cascade)
+
+  @@id([studentId, skillId])
+}
+
+model Project {
+  id          Int       @id @default(autoincrement())
+  studentId   Int
+  title       String
+  description String?
+  role        String?
+  startDate   DateTime?
+  endDate     DateTime?
+  projectUrl  String?
+  createdAt   DateTime  @default(now())
+
+  student Student        @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  skills  ProjectSkill[]
+}
+
+model ProjectSkill {
+  projectId Int
+  skillId   Int
+
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  skill   Skill   @relation(fields: [skillId], references: [id], onDelete: Cascade)
+
+  @@id([projectId, skillId])
+}
+
+model Internship {
+  id             Int       @id @default(autoincrement())
+  studentId      Int
+  companyName    String
+  role           String
+  description    String?
+  startDate      DateTime?
+  endDate        DateTime?
+  certificateUrl String?
+  createdAt      DateTime  @default(now())
+
+  student Student           @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  skills  InternshipSkill[]
+}
+
+model InternshipSkill {
+  internshipId Int
+  skillId      Int
+
+  internship Internship @relation(fields: [internshipId], references: [id], onDelete: Cascade)
+  skill      Skill      @relation(fields: [skillId], references: [id], onDelete: Cascade)
+
+  @@id([internshipId, skillId])
+}
+
+model SemesterPerformance {
+  id           Int      @id @default(autoincrement())
+  studentId    Int
+  semester     Int
+  cgpa         Float?
+  attendance   Float?
+  backlogs     Int      @default(0)
+  marksheetUrl String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  student Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@unique([studentId, semester])
+}
+
+model Resume {
+  id         Int      @id @default(autoincrement())
+  studentId  Int
+  fileName   String
+  fileUrl    String
+  isDefault  Boolean  @default(false)
+  uploadedAt DateTime @default(now())
+
+  student Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
+}
+
+model StudentActivity {
+  id          Int      @id @default(autoincrement())
+  studentId   Int
+  title       String
+  description String?
+  createdAt   DateTime @default(now())
+
+  student Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
+}
+
+model StudentSport {
+  id          Int      @id @default(autoincrement())
+  studentId   Int
+  sportName   String
+  achievement String?
+  createdAt   DateTime @default(now())
+
+  student Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
+}
+
+model StudentAward {
+  id             Int       @id @default(autoincrement())
+  studentId      Int
+  title          String
+  issuer         String?
+  awardDate      DateTime?
+  certificateUrl String?
+  createdAt      DateTime  @default(now())
+
+  student Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
+}

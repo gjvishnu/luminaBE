@@ -212,3 +212,106 @@ model StudentAward {
 
   student Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
 }
+
+//Placement Officer
+//Campus drive tables
+
+enum DriveStatus {
+  UPCOMING
+  REGISTRATION_OPEN
+  COMPLETED
+  CANCELLED
+}
+
+enum JobType {
+  FULL_TIME
+  PART_TIME
+  INTERNSHIP
+  CONTRACT
+}
+
+enum DriveDepartment {
+  CSE
+  IT
+  ECE
+  EEE
+  MECH
+  CIVIL
+}
+
+enum Degree {
+  BTECH
+  BE
+  MCA
+  MSC
+  MTECH
+}
+
+enum SelectionStage {
+  APTITUDE
+  TECHNICAL
+  HR
+  GROUP_DISCUSSION
+  ONLINE_TEST
+  INTERVIEW
+  OFFER
+}
+
+model Company {
+  id          Int      @id @default(autoincrement())
+  name        String
+  description String?
+  website     String?
+  logoUrl     String?  @map("logo_url")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  campusDrives CampusDrive[]
+
+  @@index([name])
+  @@map("companies")
+}
+
+model CampusDrive {
+  id                   Int               @id @default(autoincrement())
+  companyId            Int               @map("company_id")
+  title                String
+  description          String?
+  driveDateTime        DateTime          @map("drive_date_time")
+  registrationDeadline DateTime?         @map("registration_deadline")
+  status               DriveStatus       @default(UPCOMING)
+  jobType              JobType           @map("job_type")
+  departments          DriveDepartment[]
+  eligibleDegrees      Degree[]
+  minimumCgpa          Float?            @map("minimum_cgpa")
+  backlogsAllowed      Boolean           @default(false) @map("backlogs_allowed")
+  location             String?
+  salary               String?
+  createdAt            DateTime          @default(now()) @map("created_at")
+  updatedAt            DateTime          @updatedAt @map("updated_at")
+
+  company Company     @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  roles   DriveRole[]
+
+  @@index([companyId])
+  @@index([driveDateTime])
+  @@index([status])
+  @@map("campus_drives")
+}
+
+model DriveRole {
+  id             Int      @id @default(autoincrement())
+  driveId        Int      @map("drive_id")
+  title          String
+  description    String?
+  requiredSkills String[] @map("required_skills")
+  vacancies      Int      @default(1)
+  salary         String?
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
+
+  campusDrive CampusDrive @relation(fields: [driveId], references: [id], onDelete: Cascade)
+
+  @@index([driveId])
+  @@map("drive_roles")
+}

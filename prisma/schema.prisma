@@ -1,0 +1,123 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum DriveStatus {
+  UPCOMING
+  REGISTRATION_OPEN
+  COMPLETED
+  CANCELLED
+}
+
+enum JobType {
+  FULL_TIME
+  PART_TIME
+  INTERNSHIP
+  CONTRACT
+}
+
+enum Department {
+  CSE
+  ECE
+  EEE
+  IT
+  MECH
+  CIVIL
+}
+
+enum Degree {
+  BTECH
+  BE
+  MTECH
+  ME
+  MCA
+  MSC
+  BSC
+  OTHER
+}
+
+enum SelectionStage {
+  APTITUDE_TEST
+  ONLINE_ASSESSMENT
+  CODING_ROUND
+  TECHNICAL_INTERVIEW
+  HR_INTERVIEW
+  GROUP_DISCUSSION
+  CASE_STUDY
+  OTHER
+}
+
+model Company {
+  id             Int     @id @default(autoincrement())
+  companyName    String  @map("company_name") @db.VarChar(150)
+  companyWebsite String? @map("company_website") @db.VarChar(255)
+  aboutCompany   String? @map("about_company") @db.Text
+
+  campusDrives CampusDrive[]
+
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  @@map("companies")
+}
+
+model CampusDrive {
+  id                  Int         @id @default(autoincrement())
+  companyId           Int         @map("company_id")
+  driveDateTime       DateTime    @map("drive_date_time") @db.Timestamptz(3)
+  venue               String      @db.VarChar(255)
+  registrationEndDate DateTime?   @map("registration_end_date") @db.Date
+  driveStatus         DriveStatus @default(UPCOMING) @map("drive_status")
+
+  company Company     @relation(fields: [companyId], references: [id], onDelete: Restrict)
+  roles   DriveRole[]
+
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  @@index([companyId])
+  @@index([driveDateTime])
+  @@index([driveStatus])
+  @@map("campus_drives")
+}
+
+model DriveRole {
+  id          Int     @id @default(autoincrement())
+  driveId     Int     @map("drive_id")
+  jobRole     String  @map("job_role") @db.VarChar(150)
+  jobLocation String? @map("job_location") @db.VarChar(150)
+  jobType     JobType @map("job_type")
+  ctcPackage  String  @map("ctc_package") @db.VarChar(100)
+
+  skillsRequired   String[] @default([]) @map("skills_required")
+  numberOfOpenings Int?     @map("number_of_openings")
+
+  departments     Department[] @default([])
+  graduationYear  Int          @map("graduation_year")
+  minimumCgpa     Decimal      @map("minimum_cgpa") @db.Decimal(4, 2)
+  maximumBacklogs Int?         @map("maximum_backlogs")
+  degree          Degree?
+  otherCriteria   String?      @map("other_criteria") @db.Text
+
+  jobDescription   String           @map("job_description") @db.Text
+  selectionProcess SelectionStage[] @default([]) @map("selection_process")
+
+  campusDrive CampusDrive @relation(fields: [driveId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  @@index([driveId])
+  @@index([graduationYear])
+  @@map("drive_roles")
+}

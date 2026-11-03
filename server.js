@@ -58,6 +58,14 @@ app.use("/api/resumes", require("./routes/resumeRoutes"));
 app.use("/api/activities", require("./routes/activityRoutes"));
 app.use("/api/sports", require("./routes/sportRoutes"));
 app.use("/api/awards", require("./routes/awardRoutes"));
+// Additional CRUD routes
+app.use("/api/categories", require("./routes/categoryRoutes"));
+
+app.use(
+  "/api/semester-performance",
+  require("./routes/semesterPerformanceRoutes")
+);
+app.use("/api/domains", require("./routes/domainRoutes"));
 
 // Handle unknown routes
 app.use((req, res) => {
